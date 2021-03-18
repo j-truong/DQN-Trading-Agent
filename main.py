@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import math
 
 from dqn_agent import DQN_agent
 from env import Env 
@@ -11,14 +12,14 @@ from functions import get_model, plot_results, save_results
 # reset replay memory
 
 data = pd.read_excel('data/eur-gbp.xlsx', names=['date','open','high','low','close','volume'])
-data = data['close'][:10_000].to_numpy()
+data = data['close'].to_numpy()
 data = data.reshape(1, len(data))
 
 # PARAMETERS
 window_size = 10		# will be adjusted
-episode_size = 60 	# two hours
-#episodes = int( len(data)/(episode_size) )	
-episodes = 2
+episode_size = 120 	# two hours
+episodes = math.floor( data.shape[1]/(episode_size) )	
+episodes = 500
 batch_size = 32
 initial_bank = 200
 max_ts = 200
@@ -26,9 +27,9 @@ max_ts = 200
 # Exploitation / Exporation parameters
 epsilon = 1
 epsilon_decay = 0.995
-min_epsilon = 0.05
+min_epsilon = 0.1
 
-model_stats = pd.DataFrame(columns={'ts','episode','action','inv','profit', 'bank'})
+model_stats = pd.DataFrame(columns={'price','ts','episode','action','inv','profit', 'bank'})
 
 model = get_model(window_size)
 
@@ -49,9 +50,14 @@ for episode in range(episodes):
 	done = False
 	for t in range(episode_start, episode_start + episode_size - window_size - 1):
 
+		current_price = current_state[0][0][-1]
+
 		# Determie and execute action
 		action = agent.act(current_state, epsilon)
-		reward = env.step(action, current_state[0][0][-1], done)
+		#execute = env.executable(action, current_price)
+		#if not execute:
+		#	action = agent.explore(current_state)
+		reward = env.step(action, current_price, done)
 
 		# Next timestep
 		next_prices = data[:, t+1:t+1+window_size ]
@@ -62,22 +68,19 @@ for episode in range(episodes):
 		agent.replay_memory.append([current_state, action, reward, next_state, done])
 		agent.experience_replay()
 
-		# Update current state
+		# Update current state and  model stats
 		current_state = next_state
-
-		print ('Episode: '+str(episode)+'/'+str(episodes))
-		print (str(t)+' / '+str(episode_size))
-		print (env.inventory)
-
-
-		# Update model stats
-		model_stats = model_stats.append({'ts':t, 'episode':episode, 'action':action, 
-			'inv':len(env.inventory), 'profit':reward}, ignore_index=True)
+		model_stats = model_stats.append({'price':current_price, 'ts':t, 'episode':episode, 
+			'action':action, 'inv':len(env.inventory), 'profit':reward, 'bank':env.bank}, ignore_index=True)
 
 		# Decay Exploration
 		if epsilon > min_epsilon:		
 			epsilon *= epsilon_decay
 			epsilon = max(min_epsilon, epsilon)
+
+		# Print progress
+		print ('Episode: '+str(episode)+'/'+str(episodes))
+		print (str(t-episode_start)+' / '+str(episode_size))
 
 		# Print stats at end of episode
 		if done:

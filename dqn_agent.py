@@ -16,8 +16,17 @@ class DQN_agent:
 
 		self.target_counter = 0
 
-		self.buy_limit = 0.25 		# Bank Buy Limit
-		self.sell_limit = 0.5		# Inventory Sell Limit
+		self.buy_limit = 0.5 		# Bank Buy Limit
+		self.sell_limit = 1			# Inventory Sell Limit
+
+
+	def explore(self, state):
+
+		bank = state[1][0]
+		inv = state[1][1]
+		action = np.random.randint( -self.buy_limit*bank, self.sell_limit*inv)
+
+		return action
 
 	def act(self,state,epsilon):
 		# Decide action based on epsilon; the parameter for exploitation
@@ -29,9 +38,7 @@ class DQN_agent:
 
 		# Exploration
 		if np.random.random() < epsilon:
-			bank = state[1][0]
-			inv = state[1][1]
-			action = np.random.randint( -self.buy_limit*bank, self.sell_limit*inv)
+			action = self.explore(state)
 
 		# Exploitation
 		else: 
@@ -66,8 +73,10 @@ class DQN_agent:
 				target_q = [reward]		# because no new_state (final instance in episode)
 			else:
 				# Bellman's Equation
-				target_q  = reward + self.gamma*np.max(self.target_model.predict({"price_input":np.array(current_state[0]), 
-					"env_input":np.array([current_state[1]])}))
+				#target_q  = reward + self.gamma*np.max(self.target_model.predict({"price_input":np.array(current_state[0]), 
+				#	"env_input":np.array([current_state[1]])}))
+				target_q  = reward + self.gamma*np.max(self.target_model.predict({"price_input":np.array(next_state[0]), 
+					"env_input":np.array([next_state[1]])}))
 
 			#new_targets = self.model.predict(current_state)
 			#new_targets[0][action] = target_q

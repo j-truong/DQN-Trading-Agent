@@ -37,7 +37,7 @@ class Env:
 		# param current_price 	Current price
 		
 		if not self.executable(action, current_price):
-			self.action_history.append(action)
+			self.action_history.append(0)
 			return self.neg_reward
 
 		else:
@@ -48,7 +48,6 @@ class Env:
 				self.bank += action*current_price
 				for _ in range(abs(action)):
 					self.inventory.append(current_price)
-				print ('buy')
 
 			elif action > 0: # SELL
 				for _ in range(action):

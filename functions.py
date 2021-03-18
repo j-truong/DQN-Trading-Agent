@@ -14,7 +14,7 @@ def get_model(window):
 	# Adjsusted model
 	price_layer1 = Dense(32, activation='relu', name='price_layer1')(price_input)
 	price_layer2 = Dense(16, activation='relu', name='price_layer2')(price_layer1)
-	price_final = Flatten(name='ts_flatten')(price_layer2)
+	price_final = Flatten(name='price_flatten')(price_layer2)
 
 	# Fixed layers and output
 	concat_layer = concatenate([price_final, env_input], name='concat_layer')
@@ -26,7 +26,7 @@ def get_model(window):
 	model = Model(inputs=[price_input, env_input],
 	              outputs=[action_output])
 
-	model.compile(optimizer='Adam', loss={'action_output':'mse'})
+	model.compile(optimizer='SGD', loss={'action_output':'mse'})
 
 	return model
 
