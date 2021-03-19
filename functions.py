@@ -2,8 +2,8 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-from keras import Model
-from keras.layers import Input, concatenate, Dense, Flatten
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Input, concatenate, Dense, Flatten
 
 def get_model(window):
 
