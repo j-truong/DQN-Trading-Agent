@@ -36,32 +36,32 @@ class Env:
 		# param action 			Action taken
 		# param current_price 	Current price
 		
-		#if not self.executable(action, current_price):
-		#	self.action_history.append(0)
-		#	return self.neg_reward
+		if not self.executable(action, current_price):
+			self.action_history.append(0)
+			return self.neg_reward
 
-		#else:
-		self.bank += action*current_price
-		self.action_history.append(action)
-		#self.profit_history.append(reward)
-		self.bank_history.append(self.bank)
+		else:
+			self.bank += action*current_price
+			self.action_history.append(action)
+			#self.profit_history.append(reward)
+			self.bank_history.append(self.bank)
 
-		reward = 0
-		if action < 0: # BUY
-			for _ in range(abs(action)):
-				self.inventory.append(current_price)
+			reward = 0
+			if action < 0: # BUY
+				for _ in range(abs(action)):
+					self.inventory.append(current_price)
 
-		elif action > 0: # SELL
-			for _ in range(action):
-				prev_price = self.inventory.pop(0)
-				reward += current_price - prev_price
+			elif action > 0: # SELL
+				for _ in range(action):
+					prev_price = self.inventory.pop(0)
+					reward += current_price - prev_price
 
-		# Append final episodic profit
-		if done:
-			self.episode_rewards.append(self.bank)
+			# Append final episodic profit
+			if done:
+				self.episode_rewards.append(self.bank)
 
-		# only return reward if positive
-		return (reward if reward > 0 else 0)
+			# only return reward if positive
+			return (reward if reward > 0 else 0)
 
 
 

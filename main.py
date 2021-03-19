@@ -54,9 +54,9 @@ for episode in range(episodes):
 
 		# Determie and execute action
 		action = agent.act(current_state, epsilon)
-		execute = env.executable(action, current_price)
-		if not execute:
-			action = agent.explore(current_state)
+		#execute = env.executable(action, current_price)
+		#if not execute:
+		#	action = agent.explore(current_state)
 		reward = env.step(action, current_price, done)
 
 		# Next timestep
@@ -71,7 +71,9 @@ for episode in range(episodes):
 		# Update current state and  model stats
 		current_state = next_state
 		model_stats = model_stats.append({'price':current_price, 'ts':t, 'episode':episode, 
-			'action':action, 'inv':len(env.inventory), 'profit':reward, 'bank':env.bank}, ignore_index=True)
+			'action':env.action_history[-1], 'inv':len(env.inventory), 'profit':reward, 'bank':env.bank}, 
+			ignore_index=True)
+			#'action':action, 'inv':len(env.inventory), 'profit':reward, 'bank':env.bank}, ignore_index=True)
 
 		# Decay Exploration
 		if epsilon > min_epsilon:		
@@ -93,7 +95,7 @@ for episode in range(episodes):
 
 
 plot_results(env)
-save_results('forced_explore2', model_stats)
+save_results('unforced_explore2', model_stats)
 
 
 
