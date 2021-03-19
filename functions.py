@@ -38,16 +38,27 @@ def save_results(fname, data):
 
 
 def plot_results(env):
+	'''
+	# profit graph
 	profit_history = env.profit_history
 	plt.plot(range(len(profit_history)), profit_history)
 	plt.title('profit')
 	plt.show()
 
+	# cumulative profit graph
 	profit_history = np.cumsum(env.profit_history)
 	plt.plot(range(len(profit_history)), profit_history)
 	plt.title('acc profit')
 	plt.show()
+	'''
 
+	# cumulative profit graph
+	profit_history = env.bank_history
+	plt.plot(range(len(profit_history)), profit_history)
+	plt.title('bank')
+	plt.show()
+
+	# action graph
 	action_history = env.action_history
 	plt.plot(range(len(action_history)), action_history)
 	plt.title('actions')

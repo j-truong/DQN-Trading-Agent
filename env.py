@@ -12,7 +12,7 @@ class Env:
 		self.action_history = []
 		self.inventory = []
 		self.bank = self.initial_bank
-		self.profit_history = []
+		self.bank_history = []
 
 	def executable(self,action, current_price):
 
@@ -41,21 +41,20 @@ class Env:
 		#	return self.neg_reward
 
 		#else:
+		self.bank += action*current_price
 		self.action_history.append(action)
-		reward = 0
+		#self.profit_history.append(reward)
+		self.bank_history.append(self.bank)
 
+		reward = 0
 		if action < 0: # BUY
-			self.bank += action*current_price
 			for _ in range(abs(action)):
 				self.inventory.append(current_price)
 
 		elif action > 0: # SELL
 			for _ in range(action):
-				prev_price = self.inventory.pop(0)	# as a queue
+				prev_price = self.inventory.pop(0)
 				reward += current_price - prev_price
-			self.bank += reward
-
-		self.profit_history.append(reward)
 
 		# Append final episodic profit
 		if done:

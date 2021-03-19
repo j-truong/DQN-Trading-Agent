@@ -19,14 +19,14 @@ data = data.reshape(1, len(data))
 window_size = 10		# will be adjusted
 episode_size = 120 	# two hours
 episodes = math.floor( data.shape[1]/(episode_size) )	
-episodes = 500
+episodes = 1
 batch_size = 32
 initial_bank = 200
 max_ts = 200
 
 # Exploitation / Exporation parameters
 epsilon = 1
-epsilon_decay = 0.995
+epsilon_decay = 0.99
 min_epsilon = 0.1
 
 model_stats = pd.DataFrame(columns={'price','ts','episode','action','inv','profit', 'bank'})
@@ -93,7 +93,7 @@ for episode in range(episodes):
 
 
 plot_results(env)
-save_results('test', model_stats)
+save_results('forced_explore2', model_stats)
 
 
 
