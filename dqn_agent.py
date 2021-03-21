@@ -21,6 +21,11 @@ class DQN_agent:
 
 
 	def explore(self, state):
+		# Force exploration in deciding an action with upper and lower bounds in how
+		# much the agent can buy or sell. Both limits fixed in initialisation. 
+		#
+		# param  state 		Current state
+		# output action 	Action
 
 		bank = state[1][0]
 		inv = state[1][1]

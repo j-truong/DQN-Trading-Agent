@@ -6,6 +6,8 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, concatenate, Dense, Flatten
 
 def get_model(window):
+	# Returns a pre-determined and fixed model.
+	#
 
 	# Inputs
 	price_input = Input(shape=(window,), name='price_input')
@@ -31,13 +33,21 @@ def get_model(window):
 	return model
 
 def save_results(fname, data):
-	# save data
+	# Saves any format of data into a pickle file.
+	#
+	# param 	fname	Name of file
+	# param 	data 	Data
 
 	with open('saved_data/'+fname+'.pickle', 'wb') as handle:
 		pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def plot_results(env):
+	# Display simple plots from environment history data.
+	#
+	# param env 	Environment
+
+
 	'''
 	# profit graph
 	profit_history = env.profit_history

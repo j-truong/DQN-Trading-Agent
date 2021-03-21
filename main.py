@@ -54,9 +54,6 @@ for episode in range(episodes):
 
 		# Determie and execute action
 		action = agent.act(current_state, epsilon)
-		#execute = env.executable(action, current_price)
-		#if not execute:
-		#	action = agent.explore(current_state)
 		reward = env.step(action, current_price, done)
 
 		# Next timestep
