@@ -1,10 +1,18 @@
 
 class Env:
+<<<<<<< HEAD
 	def __init__(self, initial_bank, percent):
 		self.episode_rewards = []
 		self.initial_bank = initial_bank
 		self.neg_reward = 0
 		self.reward_percent = percent
+=======
+	def __init__(self, initial_bank, pen):
+		self.episode_rewards = []
+		self.initial_bank = initial_bank
+		self.neg_reward = 0
+		self.penalty = pen
+>>>>>>> 7fa20ed84ec3912bedb3540a048092e9f31b31f8
 
 	def reset(self):
 		# Reset all history of the environemnt at the start of each episode.
@@ -49,7 +57,8 @@ class Env:
 		
 		if not self.executable(action, current_price):
 			self.action_history.append(0)
-			return self.neg_reward
+			#return self.neg_reward
+			return -self.penalty
 
 		else:
 			transcation = action*current_price

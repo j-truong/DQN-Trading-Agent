@@ -29,6 +29,7 @@ epsilon = 1
 epsilon_decay = 0.99
 min_epsilon = 0.1
 
+<<<<<<< HEAD
 model_stats = pd.DataFrame(columns={'price','ts','episode','action','inv','reward', 'bank', 'reward_percent'})
 
 percents = [0.005,0.1,0.3,0.5]
@@ -58,6 +59,41 @@ for percent in percents:
 			action = agent.act(current_state, epsilon)
 			reward = env.step(action, current_price, done)
 
+=======
+model_stats = pd.DataFrame(columns={'price','ts','episode','action','inv','reward', 'bank',
+	'penalty'})
+
+
+
+pens = [10, 1, 0.001, 0.00001]
+for pen in pens:
+	model = get_model(window_size)
+
+	agent = DQN_agent(model, batch_size, max_ts)
+	env = Env(initial_bank, pen)
+
+
+	for episode in range(episodes):
+
+		# reset environment
+		env.reset()		
+		# Current timestep
+		episode_start = episode*episode_size
+		current_prices = data[:, episode_start:episode_start + window_size]
+		env_state = [env.bank, len(env.inventory)]
+		current_state = [current_prices, env_state]
+
+
+		done = False
+		for t in range(episode_start, episode_start + episode_size - window_size - 1):
+
+			current_price = current_state[0][0][-1]
+
+			# Determie and execute action
+			action = agent.act(current_state, epsilon)
+			reward = env.step(action, current_price, done)
+
+>>>>>>> 7fa20ed84ec3912bedb3540a048092e9f31b31f8
 			# Next timestep
 			next_prices = data[:, t+1:t+1+window_size ]
 			env_state = [env.bank, len(env.inventory)]
@@ -71,8 +107,14 @@ for percent in percents:
 			current_state = next_state
 			model_stats = model_stats.append({'price':current_price, 'ts':t, 'episode':episode, 
 				'action':env.action_history[-1], 'inv':len(env.inventory), 'reward':reward, 'bank':env.bank,
+<<<<<<< HEAD
 				'reward_percent':percent}, 
 				ignore_index=True)
+=======
+				'penalty':pen}, 
+				ignore_index=True)
+				#'action':action, 'inv':len(env.inventory), 'profit':reward, 'bank':env.bank}, ignore_index=True)
+>>>>>>> 7fa20ed84ec3912bedb3540a048092e9f31b31f8
 
 			# Decay Exploration
 			if epsilon > min_epsilon:		
@@ -80,6 +122,7 @@ for percent in percents:
 				epsilon = max(min_epsilon, epsilon)
 
 			# Print progress
+<<<<<<< HEAD
 			print ('percent: '+ str(percents.index(percent)) +' / '+ str(len(percents)) )
 			print ('Episode: '+str(episode)+'/'+str(episodes))
 			print (str(t-episode_start)+' / '+str(episode_size))
@@ -92,10 +135,30 @@ for percent in percents:
 				print ('Inventory: '+str(env.inventory))
 				print ('============================')
 				print ('')
+=======
+			print  ('pen: '+ str(pens.index(pen)) +' / '+str(len(pens)) )
+			print ('Episode: '+str(episode)+'/'+str(episodes))
+			print (str(t-episode_start)+' / '+str(episode_size))
+			print ('')
+>>>>>>> 7fa20ed84ec3912bedb3540a048092e9f31b31f8
+
+			# Print stats at end of episode
+			if done:
+				print ('============================')
+				print ('Episode: '+str(epsiode)+' / '+str(episodes))
+				print ('Profit: '+str(env.profit))
+				print ('Inventory: '+str(env.inventory))
+				print ('============================')
+				print ('')
 
 
+<<<<<<< HEAD
 plot_results(env)
 save_results('reward_percent', model_stats)
+=======
+#plot_results(env)
+save_results('reward_fixed_ne', model_stats)
+>>>>>>> 7fa20ed84ec3912bedb3540a048092e9f31b31f8
 
 
 
