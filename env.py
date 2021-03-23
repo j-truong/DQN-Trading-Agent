@@ -1,9 +1,10 @@
 
 class Env:
-	def __init__(self, initial_bank):
+	def __init__(self, initial_bank, percent):
 		self.episode_rewards = []
 		self.initial_bank = initial_bank
 		self.neg_reward = 0
+		self.reward_percent = percent
 
 	def reset(self):
 		# Reset all history of the environemnt at the start of each episode.
@@ -51,11 +52,15 @@ class Env:
 			return self.neg_reward
 
 		else:
-			self.bank += action*current_price
+			transcation = action*current_price
+			trans_fee = abs(transcation*self.reward_percent)
+			self.bank += transcation
+
 			self.action_history.append(action)
 			self.bank_history.append(self.bank)
 
-			reward = 0
+			#reward = 0
+			reward = -trans_fee
 			if action < 0: # BUY
 				for _ in range(abs(action)):
 					self.inventory.append(current_price)
@@ -69,7 +74,8 @@ class Env:
 				self.episode_rewards.append(self.bank)
 
 			# only return reward if positive (adjustable)
-			return (reward if reward > 0 else 0)
+			#return (reward if reward > 0 else 0)
+			return reward
 
 
 
