@@ -1,18 +1,12 @@
 
 class Env:
-<<<<<<< HEAD
-	def __init__(self, initial_bank, percent):
-		self.episode_rewards = []
+	def __init__(self, initial_bank, pen_reward=0, percent=0, fee=0):
 		self.initial_bank = initial_bank
-		self.neg_reward = 0
-		self.reward_percent = percent
-=======
-	def __init__(self, initial_bank, pen):
-		self.episode_rewards = []
-		self.initial_bank = initial_bank
-		self.neg_reward = 0
-		self.penalty = pen
->>>>>>> 7fa20ed84ec3912bedb3540a048092e9f31b31f8
+
+		# Negative Rewards
+		self.pen_reward = 0				# Penalise action
+		self.trans_percent = percent 	# Transaction percentage fee
+		self.trans_fee = fee 			# Fixed Transaction fee
 
 	def reset(self):
 		# Reset all history of the environemnt at the start of each episode.
@@ -20,17 +14,18 @@ class Env:
 		self.action_history = []
 		self.inventory = []
 		self.bank = self.initial_bank
-		self.bank_history = []
+		self.portfolio = self.initial_bank
+		self.portfolio_history = []
 
-	def executable(self,action, current_price):
+	def executable(self, action, current_price):
 		# Determines whether an action is executable given the action and 
 		# corresponding amount. This is checked against the environment's bank
 		# and inventory.
 		#
-		# param	 action 		Action
-		# param  current_price 	Current Price of data
-		# output executable 	Boolean of whether the action is executable:
-		# 						True = executable, False = not executable
+		# param	 	action 			Action
+		# param  	current_price 	Current Price of data
+		# output 	executable 		Boolean of whether the action is executable:
+		# 								True = executable, False = not executable
 
 		if action < 0: # BUY
 			if abs(action*current_price) > self.bank:
@@ -42,34 +37,36 @@ class Env:
 
 		return True
 
-	def step(self,action,current_price,done):
+
+	def step(self, action, current_price):
 		# Exceute determined action in environment and updates history.
 		# BUY = <0, HOLD = 0, SELL = >0
 		#
 		# Comments: 	- can change inventory selection from queue to min/max
 		#				- reward can be actual change and not only positive
 		# 
-		# param  action 		Action taken
-		# param  current_price 	Current price
-		# param  done 			Boolean if final timestep (ts) in episode:
-		# 						True = is final ts, False: is not final ts
-		# output reward 		Reward 
+		# param  	action 			Action taken
+		# param  	current_price 	Current price
+		# param  	done 			Boolean if final timestep (ts) in episode:
+		# 								True = is final ts, False: is not final ts
+		# output 	reward 			Reward 
 		
 		if not self.executable(action, current_price):
 			self.action_history.append(0)
-			#return self.neg_reward
-			return -self.penalty
+			return self.pen_reward
 
 		else:
-			transcation = action*current_price
-			trans_fee = abs(transcation*self.reward_percent)
-			self.bank += transcation
+			# Cost of transaction
+			if action != 0:
+				transaction = action*current_price
+				trans_cost = transaction - abs(transaction*self.trans_percent) - self.trans_fee
+			else:
+				trans_cost = 0
+			self.bank += trans_cost
 
-			self.action_history.append(action)
-			self.bank_history.append(self.bank)
 
-			#reward = 0
-			reward = -trans_fee
+			# Update Environment
+			reward = 0
 			if action < 0: # BUY
 				for _ in range(abs(action)):
 					self.inventory.append(current_price)
@@ -79,12 +76,15 @@ class Env:
 					prev_price = self.inventory.pop(0)
 					reward += current_price - prev_price
 
-			if done:   # Append final episodic profit
-				self.episode_rewards.append(self.bank)
 
-			# only return reward if positive (adjustable)
-			#return (reward if reward > 0 else 0)
-			return reward
+			# Update stats 
+			self.action_history.append(action)
+			self.portfolio = self.bank + (current_price*len(self.inventory))
+			self.portfolio_history.append(self.portfolio)
+
+			# only positive reward
+			return (reward if reward > 0 else 0)
+			#return reward
 
 
 
