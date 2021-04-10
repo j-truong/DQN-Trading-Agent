@@ -117,6 +117,9 @@ class DQN:
 			
 			# Determie and execute action
 			action = self.agent.act(current_state, self.epsilon)
+			execute = self.env.executable(action, current_price)
+			if not execute:
+				action = self.agent.explore(current_state)
 			reward = self.env.step(action, current_price)
 
 			# NOTE: need to set next_state to None for 'done'
@@ -239,7 +242,7 @@ class DQN:
 		self.train()
 		self.validate()
 
-		self.save_results('unforce_explore')
+		self.save_results('force_explore')
 		self.plot_results()
 
 
