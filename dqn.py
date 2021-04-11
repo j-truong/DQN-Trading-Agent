@@ -20,7 +20,7 @@ class DQN:
 
 		self.window_size = 10			# will be adjusted
 		self.episode_size = 120 		# fixed
-		self.train_episodes = 763
+		self.train_episodes = 386
 		#self.train_episodes  = 10
 		self.batch_size = 32
 		self.initial_bank = 200
@@ -31,8 +31,8 @@ class DQN:
 		self.epsilon_decay = 0.99
 		self.min_epsilon = 0.1
 
-		self.val_start = 91632
-		self.val_end = 121589
+		self.val_start = 46340
+		self.val_end = 60680
 		#self.val_end = 60750
 
 
@@ -215,7 +215,7 @@ class DQN:
 		#
 		# param 	fname 	Name of file
 
-		with open('saved_data2/'+fname+'.pickle', 'wb') as handle:
+		with open('saved_data3/'+fname+'.pickle', 'wb') as handle:
 			pickle.dump(self.model_stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
