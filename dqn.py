@@ -20,8 +20,8 @@ class DQN:
 
 		self.window_size = 10			# will be adjusted
 		self.episode_size = 120 		# fixed
-		self.train_episodes = 763
-		#self.train_episodes  = 10
+		#self.train_episodes = 763
+		self.train_episodes  = 386
 		self.batch_size = 32
 		self.initial_bank = 200
 		self.max_ts = 200
@@ -31,9 +31,9 @@ class DQN:
 		self.epsilon_decay = 0.99
 		self.min_epsilon = 0.1
 
-		self.val_start = 91632
-		self.val_end = 121589
-		#self.val_end = 60750
+		self.val_start = 46340
+		#self.val_end = 121589
+		self.val_end = 60680
 
 
 	def set_variables(self):
@@ -117,9 +117,9 @@ class DQN:
 			
 			# Determie and execute action
 			action = self.agent.act(current_state, self.epsilon)
-			execute = self.env.executable(action, current_price)
-			if not execute:
-				action = self.agent.explore(current_state)
+			#execute = self.env.executable(action, current_price)
+			#if not execute:
+			#	action = self.agent.explore(current_state)
 			reward = self.env.step(action, current_price)
 
 			# NOTE: need to set next_state to None for 'done'
@@ -172,7 +172,8 @@ class DQN:
 		self.model_stats = self.model_stats.append({'price':current_price, 'ts':t, 
 			'episode':episode, 'action':self.env.action_history[-1], 
 			'inv':len(self.env.inventory), 'reward':reward, 'bank':self.env.bank, 
-			'portfolio':self.env.portfolio}, ignore_index=True)
+			'portfolio':self.env.portfolio}, 
+			ignore_index=True)
 
 
 	def print_progress(self, episode, ts, done):
@@ -185,6 +186,10 @@ class DQN:
 		if episode==-1:
 			print ('Validation Phase: ')
 			print ('Timestep: '+str(ts)+'/'+str(self.val_end-self.val_start))
+			if self.env.trans_percent != 0:
+				print ('Percent: '+str(self.env.trans_percent))
+			if self.env.trans_fee != 0:
+				print ('Fee: '+str(self.env.trans_fee))
 			print ('')
 			if done:
 				print ('============================')
@@ -198,6 +203,10 @@ class DQN:
 			print ('Training Phase: ')
 			print ('Episode: '+str(episode)+'/'+str(self.train_episodes))
 			print ('Timestep: '+str(ts)+'/'+str(self.episode_size))
+			if self.env.trans_percent != 0:
+				print ('Percent: '+str(self.env.trans_percent))
+			if self.env.trans_fee != 0:
+				print ('Fee: '+str(self.env.trans_fee))
 			print ('')
 
 			# Print stats at end of episode
@@ -215,7 +224,7 @@ class DQN:
 		#
 		# param 	fname 	Name of file
 
-		with open('saved_data2/'+fname+'.pickle', 'wb') as handle:
+		with open('saved_data3/'+fname+'.pickle', 'wb') as handle:
 			pickle.dump(self.model_stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -237,12 +246,28 @@ class DQN:
 	def run(self):
 		# Runs entire program.
 
-		self.set_variables()
+		#self.set_variables()
+		df = pd.read_excel('data/eur-gbp.xlsx', 
+			names=['date','open','high','low','close','volume'])
+		data = df['close'].to_numpy()
+		self.data = data.reshape(1, len(data))	
+
+		model = self.get_model()	
+
+
+		#percents = [0.005, 0.01, 0.05]
+		stat_columns = {'price','ts','episode','action','inv','reward', 'bank', 'portfolio'}
+			#'percent'}
+		self.model_stats = pd.DataFrame(columns=stat_columns)
+
+		#for p in percents:
+		self.agent = Agent(model, self.batch_size, self.max_ts)
+		self.env = Env(self.initial_bank)
 
 		self.train()
 		self.validate()
 
-		self.save_results('force_explore')
+		self.save_results('unforce_explore')
 		self.plot_results()
 
 
