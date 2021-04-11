@@ -84,8 +84,8 @@ class Env:
 			self.portfolio_history.append(self.portfolio)
 
 			# only positive reward
-			#return (reward if reward > 0 else 0)
-			return reward
+			return (reward if reward > 0 else 0)
+			#return reward
 
 
 

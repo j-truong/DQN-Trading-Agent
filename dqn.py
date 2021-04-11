@@ -20,13 +20,7 @@ class DQN:
 
 		self.window_size = 10			# will be adjusted
 		self.episode_size = 120 		# fixed
-<<<<<<< HEAD
-		self.train_episodes = 386
-		#self.train_episodes  = 10
-=======
-		#self.train_episodes = 763
-		self.train_episodes  = 386
->>>>>>> 7b796caf1c7000bb520fbc88736d49167a4bf97f
+		self.train_episodes = 1 #386
 		self.batch_size = 32
 		self.initial_bank = 200
 		self.max_ts = 200
@@ -37,32 +31,7 @@ class DQN:
 		self.min_epsilon = 0.1
 
 		self.val_start = 46340
-<<<<<<< HEAD
-		self.val_end = 60680
-		#self.val_end = 60750
-=======
-		#self.val_end = 121589
-		self.val_end = 60680
->>>>>>> 7b796caf1c7000bb520fbc88736d49167a4bf97f
-
-
-	def set_variables(self):
-		# Initialise agent, environment and stats dataframe. 
-		# Formatted in this function so we can modify NN models and input data in future 
-		# experiments. 
-
-		df = pd.read_excel('data/eur-gbp.xlsx', 
-			names=['date','open','high','low','close','volume'])
-		data = df['close'].to_numpy()
-		self.data = data.reshape(1, len(data))	
-
-		model = self.get_model()	
-		self.agent = Agent(model, self.batch_size, self.max_ts)
-		self.env = Env(self.initial_bank)
-
-
-		stat_columns = {'price','ts','episode','action','inv','reward', 'bank', 'portfolio'}
-		self.model_stats = pd.DataFrame(columns=stat_columns)
+		self.val_end = 46345 #60680
 
 
 	def get_model(self):
@@ -127,9 +96,9 @@ class DQN:
 			
 			# Determie and execute action
 			action = self.agent.act(current_state, self.epsilon)
-			#execute = self.env.executable(action, current_price)
-			#if not execute:
-			#	action = self.agent.explore(current_state)
+			execute = self.env.executable(action, current_price)
+			if not execute:
+				action = self.agent.explore(current_state)
 			reward = self.env.step(action, current_price)
 
 			# NOTE: need to set next_state to None for 'done'
@@ -182,7 +151,7 @@ class DQN:
 		self.model_stats = self.model_stats.append({'price':current_price, 'ts':t, 
 			'episode':episode, 'action':self.env.action_history[-1], 
 			'inv':len(self.env.inventory), 'reward':reward, 'bank':self.env.bank, 
-			'portfolio':self.env.portfolio}, 
+			'portfolio':self.env.portfolio, 'percent':self.env.trans_percent}, 
 			ignore_index=True)
 
 
@@ -265,20 +234,20 @@ class DQN:
 		model = self.get_model()	
 
 
-		#percents = [0.005, 0.01, 0.05]
-		stat_columns = {'price','ts','episode','action','inv','reward', 'bank', 'portfolio'}
-			#'percent'}
+		percents = [0.005, 0.01, 0.05]
+		stat_columns = {'price','ts','episode','action','inv','reward', 'bank', 'portfolio',
+			'percent'}
 		self.model_stats = pd.DataFrame(columns=stat_columns)
 
-		#for p in percents:
-		self.agent = Agent(model, self.batch_size, self.max_ts)
-		self.env = Env(self.initial_bank)
+		for p in percents:
+			self.agent = Agent(model, self.batch_size, self.max_ts)
+			self.env = Env(self.initial_bank)
 
-		self.train()
-		self.validate()
+			self.train()
+			self.validate()
 
-		self.save_results('unforce_explore')
-		self.plot_results()
+		self.save_results('reward_percent')
+		#self.plot_results()
 
 
 dqn = DQN()
