@@ -59,14 +59,15 @@ class Env:
 			# Cost of transaction
 			if action != 0:
 				transaction = action*current_price
-				trans_cost = transaction - abs(transaction*self.trans_percent) - self.trans_fee
+				additional_cost = - abs(transaction*self.trans_percent) - self.trans_fee
 			else:
-				trans_cost = 0
-			self.bank += trans_cost
+				transaction = 0
+				additional_cost = 0
+			self.bank += transaction + additional_cost
 
 
 			# Update Environment
-			reward = 0
+			reward = additional_cost
 			if action < 0: # BUY
 				for _ in range(abs(action)):
 					self.inventory.append(current_price)
@@ -83,8 +84,8 @@ class Env:
 			self.portfolio_history.append(self.portfolio)
 
 			# only positive reward
-			return (reward if reward > 0 else 0)
-			#return reward
+			#return (reward if reward > 0 else 0)
+			return reward
 
 
 
