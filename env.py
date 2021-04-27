@@ -8,6 +8,7 @@ class Env:
 		self.trans_percent = percent 	# Transaction percentage fee
 		self.trans_fee = fee 			# Fixed Transaction fee
 
+
 	def reset(self):
 		# Reset all history of the environemnt at the start of each episode.
 
@@ -16,6 +17,7 @@ class Env:
 		self.bank = self.initial_bank
 		self.portfolio = self.initial_bank
 		self.portfolio_history = []
+
 
 	def executable(self, action, current_price):
 		# Determines whether an action is executable given the action and 
@@ -28,7 +30,7 @@ class Env:
 		# 								True = executable, False = not executable
 
 		if action < 0: # BUY
-			if abs(action*current_price) > self.bank:
+			if abs(action*current_price) >= self.bank:
 				return False
 
 		if action > 0: # SELL
@@ -84,8 +86,8 @@ class Env:
 			self.portfolio_history.append(self.portfolio)
 
 			# only positive reward
-			return (reward if reward > 0 else 0)
-			#return reward
+			#return (reward if reward > 0 else 0)
+			return reward
 
 
 

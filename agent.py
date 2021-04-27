@@ -33,6 +33,7 @@ class Agent:
 
 		return action
 
+
 	def act(self,state,epsilon):
 		# Decide action based on epsilon; the parameter for exploitation
 		# and exploration. 
