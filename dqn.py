@@ -10,6 +10,7 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, concatenate, Dense, Flatten
 from tensorflow.keras.layers import Conv1D, AveragePooling1D
 from tensorflow.keras.layers import LSTM
+from tensorflow.keras.models import load_model
 
 from agent import Agent
 from env import Env 
@@ -37,6 +38,7 @@ class DQN:
 		# Fixed validation and test timesteps
 		self.val_start = 46340
 		self.val_end = 60680
+		self.test_end = 121589
 
 		# Print Progress
 		self.print_name = None
@@ -47,7 +49,10 @@ class DQN:
 
 
 	def fixed_model(self):
-		# Returns a pre-determined and fixed model for current experimentation.
+		# A pre-determined and fixed model for experimentation in determining
+		# Reinforcement Learning parameters.
+		#
+		# output 	model 	Fixed model
 
 		# Input Layers
 		price_input = Input(shape=(self.window_size,), name='price_input')
@@ -160,11 +165,12 @@ class DQN:
 		# param 	current_price 	Current Price
 		# param 	t 				Current Timestep
 		# param 	episode 		Episode Number 
-		# 								-1 if validation phase
+		# 							- Validation Phase: -1
+		# 							- Test Phase: 		-2	
 		# param 	reward 			Reward
 
-		hl, node1, node2, opt = self.print_value
 		time_taken = self.start_time - time.time()
+		hl, node1, node2, opt = self.print_value
 
 		self.model_stats = self.model_stats.append({'price':current_price, 'ts':t, 
 			'episode':episode, 'action':self.env.action_history[-1], 'inv':len(self.env.inventory), 
@@ -181,10 +187,12 @@ class DQN:
 		# param 	ts 				Current Timestep
 		# param 	done 			Terminal timestep of episode
 
+		# VALIDATION PHASE
 		if episode==-1:
 			print ('Validation Phase: ')
 			print ('Timestep: '+str(ts)+'/'+str(self.val_end-self.val_start))
 
+			# print parameters
 			for name, value in zip(self.print_name, self.print_value):
 				print (name+': '+str(value))
 			print ('')
@@ -197,11 +205,28 @@ class DQN:
 				print ('============================')
 				print ('')
 
+		# TEST PHASE
+		elif episode==-2:
+			print ('Test Phase: ')
+			print ('Timestep: '+str(ts)+'/'+str(self.test_end-self.val_end))
+			print ('')
+
+			if done:
+				print ('============================')
+				print ('TEST FINISHED')
+				print ('Portfolio: '+str(self.env.portfolio))
+				print ('Inventory: '+str(self.env.inventory))
+				print ('============================')
+				print ('')
+				
+
+		# TRAINING PHASE
 		else:
 			print ('Training Phase: ')
 			print ('Episode: '+str(episode)+'/'+str(self.train_episodes))
 			print ('Timestep: '+str(ts)+'/'+str(self.episode_size))
 
+			# print parameters
 			for name, value in zip(self.print_name, self.print_value):
 				print (name+': '+str(value))
 			print ('')
@@ -216,22 +241,19 @@ class DQN:
 				print ('')
 
 
-	def save_results(self, fname):
+	def save_results(self,folder,fname):
 		# Saves results in a pickle file.
 		#
 		# param 	fname 	Name of file
 
-		#with open('saved_data3/'+fname+'.pickle', 'wb') as handle:
-		#	pickle.dump(self.model_stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-		with open('saved_data3/DQN_ANN/stats/'+fname+'.pickle', 'wb') as handle:
+		with open(folder+'stats/'+fname+'.pickle', 'wb') as handle:
 			pickle.dump(self.model_stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-		with open('saved_data3/DQN_ANN/replay_memory/'+fname+'.pickle', 'wb') as handle:
+		with open(folder+'replay_memory/'+fname+'.pickle', 'wb') as handle:
 			pickle.dump(self.agent.replay_memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 		model = self.agent.model
-		model.save('saved_data3/DQN_ANN/model/'+fname)
+		model.save(folder+'model/'+fname)
 		
 
 	def plot_results(self):
@@ -251,7 +273,7 @@ class DQN:
 
 	def get_ANN(self,hidden_layer,nodes1,nodes2,opt):
 		# Creates a small and simple Artificial Neural Network (ANN) with the given parameters. 
-		# Consists of only hidden layers, dropout can also be considered.
+		# Consists of only hidden layers - dropout can also be considered.
 		#
 		# param 	hidden_layer 	Amount of hidden layers in ANN
 		# param 	nodes1 			Layer size of first hidden layer
@@ -290,26 +312,25 @@ class DQN:
 
 	def get_CNN(self,layers,filters1,filters2,opt):
 		# Creates a small and simple Convolutional Neural Network (CNN) with the given parameters. 
-		# Consists of Convolutional layers, average pooling, and dropout can be considered.
+		# Consists of Convolutional layers, average pooling - dropout can be considered.
 		#
 		# param 	hidden_layer 	Amount of hidden layers in ANN
-		# param 	nodes1 			Layer size of first hidden layer
-		# param 	nodes2 			Layer size of second hidden layer (if feasible)
-		# param 	opt 			Optimizer of ANN
-		# output 	model 			ANN model
+		# param 	filters1 		Filter size of first hidden layer
+		# param 	filters2 		Filter size of second hidden layer (if feasible)
+		# param 	opt 			Optimizer 
+		# output 	model 			CNN model
 
 		# Input Layers
-		price_input = Input(shape=(self.window_size,), name='price_input')
+		price_input = Input(shape=(self.window_size,1,), name='price_input')
 		env_input = Input(shape=(2,), name='env_input')
 
 		# Adjsustable Hidden Layers
-		price_layer = Conv1D(filters1, activation='relu', name='price_layer1')(price_input)
+		price_layer = Conv1D(filters=filters1, kernel_size=2, activation='relu', name='price_layer1')(price_input)
 		for _ in range(layers-1):
-			price_layer = Conv1D(filters2, activation='relu', name='price_layer2')(price_layer)
+			price_layer = Conv1D(filters=filters2, kernel_size=2, activation='relu', name='price_layer2')(price_layer)
 		
 		# Average Pooling Layers
-		if average_pooling:
-			price_final = AveragePooling1D(pool_size=2)(price_final)
+		price_layer = AveragePooling1D(pool_size=2)(price_layer)
 
 		# Dropout
 		#if dropout:
@@ -346,9 +367,12 @@ class DQN:
 		env_input = Input(shape=(2,), name='env_input')
 
 		# Adjsustable Hidden Layers
-		price_layer = LSTM(filters1, activation='relu', name='price_layer1')(price_input)
-		for _ in range(layers-1):
-			price_layer = LSTM(filters2, activation='relu', name='price_layer2')(price_layer)
+		if layers == 1:
+			price_layer = LSTM(units, activation='relu', name='price_layer1')(price_input)
+		elif layers > 1:
+			price_layer = LSTM(filters1, return_sequences=True, activation='relu', name='price_layer1')(price_input)
+			for _ in range(layers-1):
+				price_layer = LSTM(filters2, activation='relu', name='price_layer2')(price_layer)
 		price_final = Flatten(name='price_flatten')(price_layer)
 
 		# Dropout
@@ -369,82 +393,132 @@ class DQN:
 		return model
 
 
-	def run(self):
-		# Runs entire program.
+	def run_model(self,model_type,stat_columns,hidden_layer,layer_size1,layer_size2,opt):
+		# Run the training and validation phase of the model with the selected combination.
+		# Model data is also saved.
+		#
+		# param 	model_type		Neural Network type to be used in DQN model
+		# 							'ANN' = Artificial Neural Network
+		#							'CNN' = Convolutional Neural Network
+		#							'RNN' = Recurrent Neural Network
+		# param 	stat_columns	Recorded statistics of the model 
+		# param 	hidden_layer 	Amount of hidden layers 
+		# param 	layer_size1 	Node size of first hidden layer
+		# param 	layer_size2 	Node size of second hidden layer
+		# param 	opt 			Optimizer
 
+		self.start_time = time.time()
+		self.model_stats = pd.DataFrame(columns=stat_columns)
+
+		# Retrieve model combination dependant on model type
+		if model_type == 'ANN':
+			model = self.get_ANN(hidden_layer, layer_size1, layer_size2, opt)
+			folder = 'saved_data3/DQN_ANN/train/'
+
+		elif model_type == 'CNN':
+			model = self.get_CNN(hidden_layer, layer_size1, layer_size2, opt)
+			folder = 'saved_data3/DQN_CNN/train/'
+
+		elif model_type == 'RNN':
+			model = self.get_RNN(hidden_layer, layer_size1, layer_size2, opt)
+			folder = 'saved_data3/DQN_RNN/train/'
+
+		else:
+			raise NameError('Unfamilar model type')
+		
+		# Initialise agent and environment
+		self.agent = Agent(model, self.batch_size, self.max_ts)
+		self.env = Env(self.initial_bank)
+
+		# Training and validation phase
+		self.train()
+		self.validate()
+
+		# Save results
+		fname = str(hidden_layer)+'_'+str(layer_size1)+'_'+str(layer_size2)+'_'+str(opt)
+		self.save_results(folder, fname)
+
+
+	def run(self, model_type):
+		# Runs entire program.
+		#
+		# param 	model_type 		Neural Network type to be used in DQN model
+		# 							'ANN' = Artificial Neural Network
+		#							'CNN' = Convolutional Neural Network
+		#							'RNN' = Recurrent Neural Network
+
+		# Read data
 		df = pd.read_excel('data/eur-gbp.xlsx', 
 			names=['date','open','high','low','close','volume'])
 		data = df['close'].to_numpy()
 		self.data = data.reshape(1, len(data))	
 
+		# Record model progress
 		self.print_name = ['hidden_layer','layer_size1','layer_size2','opt']
 		stat_columns = {'price','ts','episode','action','inv','reward', 'bank', 'portfolio','time',
 			'hidden_layer','layer_size1','layer_size2','opt'}
 
-
+		# Adjusted parameters
 		hidden_layers = [1,2]
 		layer_sizes = [8,32]
 		optimizers = ['SGD','Adam']
 
+		# Combinations of DQN model
 		for hidden_layer in hidden_layers:
 			for layer_size1 in layer_sizes:
 				for opt in optimizers:
 
 					if hidden_layer == 1:
 						layer_size2 = 0
-						self.model_stats = pd.DataFrame(columns=stat_columns)
-						self.start_time = time.time()
-
 						self.print_value = [hidden_layer, layer_size1, layer_size2, opt]
-						fname = str(hidden_layer)+'_'+str(layer_size1)+'_'+str(layer_size2)+'_'+str(opt)
-
-						model = self.get_ANN(*self.print_value)
-						
-						self.agent = Agent(model, self.batch_size, self.max_ts)
-						self.env = Env(self.initial_bank)
-
-						self.train()
-						self.validate()
-
-						self.save_results(fname)
+						self.run_model(model_type, stat_columns, hidden_layer, layer_size1, layer_size2, opt)
 
 					elif hidden_layer == 2:
 						for layer_size2 in layer_sizes:
-
 							if layer_size1 >= layer_size2:
-								self.model_stats = pd.DataFrame(columns=stat_columns)
-								self.start_time = time.time()
-
 								self.print_value = [hidden_layer, layer_size1, layer_size2, opt]
-								fname = str(hidden_layer)+'_'+str(layer_size1)+'_'+str(layer_size2)+'_'+str(opt)
-
-								model = self.get_ANN(*self.print_value)
-
-								self.agent = Agent(model, self.batch_size, self.max_ts)
-								self.env = Env(self.initial_bank)
-
-								self.train()
-								self.validate()
-
-								self.save_results(fname)
+								self.run_model(model_type, stat_columns, hidden_layer, layer_size1, layer_size2, opt)
 
 
-	def test(self, folder, name):
-		# Test trained and validated model on testin dataset.
+	def test(self, model_folder, fname):
+		# Test trained and validated model on test dataset.
+		#
+		# param 	model_folder 	Name of folder the model resides
+		# param 	fname 			File name
 
+		# Read Data
 		df = pd.read_excel('data/eur-gbp.xlsx', 
 			names=['date','open','high','low','close','volume'])
 		data = df['close'].to_numpy()
 		self.data = data.reshape(1, len(data))	
 
-		self.print_name = ['hidden_layer','layer_size1','layer_size2','opt']
-		stat_columns = {'price','ts','episode','action','inv','reward', 'bank', 'portfolio','time',
-			'hidden_layer','layer_size1','layer_size2','opt'}
+		# Load trained model and replay memory
+		trained_model = load_model('saved_data3/'+model_folder+'/train/model/'+fname)
+		memory_name = 'saved_data3/'+model_folder+'/train/replay_memory/'+fname+'.pickle'
+		with open(memory_name, 'rb') as handle:
+		    memory = pickle.load(handle)
 
+		# Record statistics and model progress
+		self.start_time = time.time()
+		stat_columns = {'price','ts','episode','action','inv','reward','bank','portfolio','time'}
+		self.model_stats = pd.DataFrame(columns=stat_columns)
+
+		# Initialise agent and environment
+		self.env = Env(self.initial_bank)
+		self.agent = Agent(trained_model, self.batch_size, self.max_ts)
+		self.agent.replay_memory = memory
+
+		# Continue learning in testing phase
+		self.learn(-2, self.val_end, self.test_end)
+
+		# Save data
+		folder = 'saved_data3/'+model_folder+'/test/'
+		self.save_results(folder, fname)
 
 
 dqn = DQN()
-dqn.run()
+dqn.run('CNN')
+#dqn.test('DQN_ANN','2_32_32_Adam')
 
 
 
