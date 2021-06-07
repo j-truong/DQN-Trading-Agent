@@ -363,16 +363,16 @@ class DQN:
 		# output 	model 			ANN model
 
 		# Input Layers
-		price_input = Input(shape=(self.window_size,), name='price_input')
+		price_input = Input(shape=(self.window_size,1,), name='price_input')
 		env_input = Input(shape=(2,), name='env_input')
 
 		# Adjsustable Hidden Layers
 		if layers == 1:
-			price_layer = LSTM(units, activation='relu', name='price_layer1')(price_input)
+			price_layer = LSTM(units1, activation='relu', name='price_layer1')(price_input)
 		elif layers > 1:
-			price_layer = LSTM(filters1, return_sequences=True, activation='relu', name='price_layer1')(price_input)
+			price_layer = LSTM(units1, return_sequences=True, activation='relu', name='price_layer1')(price_input)
 			for _ in range(layers-1):
-				price_layer = LSTM(filters2, activation='relu', name='price_layer2')(price_layer)
+				price_layer = LSTM(units2, activation='relu', name='price_layer2')(price_layer)
 		price_final = Flatten(name='price_flatten')(price_layer)
 
 		# Dropout
@@ -432,7 +432,7 @@ class DQN:
 
 		# Training and validation phase
 		self.train()
-		self.validate()
+		#self.validate()
 
 		# Save results
 		fname = str(hidden_layer)+'_'+str(layer_size1)+'_'+str(layer_size2)+'_'+str(opt)
@@ -475,7 +475,10 @@ class DQN:
 
 					elif hidden_layer == 2:
 						for layer_size2 in layer_sizes:
-							if layer_size1 >= layer_size2:
+							#if layer_size1 >= layer_size2:
+							if (layer_size1==8) and (layer_size2==8):
+								pass 
+							else:
 								self.print_value = [hidden_layer, layer_size1, layer_size2, opt]
 								self.run_model(model_type, stat_columns, hidden_layer, layer_size1, layer_size2, opt)
 
@@ -517,8 +520,8 @@ class DQN:
 
 
 dqn = DQN()
-dqn.run('CNN')
-#dqn.test('DQN_ANN','2_32_32_Adam')
+dqn.run('RNN')
+#dqn.test('DQN_CNN','1_32_0_Adam')
 
 
 
