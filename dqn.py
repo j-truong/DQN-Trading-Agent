@@ -432,7 +432,7 @@ class DQN:
 
 		# Training and validation phase
 		self.train()
-		#self.validate()
+		self.validate()
 
 		# Save results
 		fname = str(hidden_layer)+'_'+str(layer_size1)+'_'+str(layer_size2)+'_'+str(opt)
@@ -477,11 +477,14 @@ class DQN:
 						for layer_size2 in layer_sizes:
 							#if layer_size1 >= layer_size2:
 							if (layer_size1==8) and (layer_size2==8):
-								pass 
-							else:
 								self.print_value = [hidden_layer, layer_size1, layer_size2, opt]
 								self.run_model(model_type, stat_columns, hidden_layer, layer_size1, layer_size2, opt)
-
+								#pass 
+							else:
+								#self.print_value = [hidden_layer, layer_size1, layer_size2, opt]
+								#self.run_model(model_type, stat_columns, hidden_layer, layer_size1, layer_size2, opt)
+								pass
+								
 
 	def test(self, model_folder, fname):
 		# Test trained and validated model on test dataset.
