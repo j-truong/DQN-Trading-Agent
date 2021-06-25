@@ -170,13 +170,13 @@ class DQN:
 		# param 	reward 			Reward
 
 		time_taken = self.start_time - time.time()
-		hl, node1, node2, opt = self.print_value
+		#hl, node1, node2, opt = self.print_value
 
 		self.model_stats = self.model_stats.append({'price':current_price, 'ts':t, 
 			'episode':episode, 'action':self.env.action_history[-1], 'inv':len(self.env.inventory), 
-			'reward':reward, 'bank':self.env.bank, 'portfolio':self.env.portfolio, 'time':time_taken,
+			'reward':reward, 'bank':self.env.bank, 'portfolio':self.env.portfolio, 'time':time_taken},
 
-			'hidden_layer':hl, 'layer_size1':node1, 'layer_size2':node2, 'opt':opt}, 
+			#'hidden_layer':hl, 'layer_size1':node1, 'layer_size2':node2, 'opt':opt}, 
 			ignore_index=True)
 
 
@@ -459,7 +459,7 @@ class DQN:
 			'hidden_layer','layer_size1','layer_size2','opt'}
 
 		# Adjusted parameters
-		hidden_layers = [1,2]
+		hidden_layers = [2]
 		layer_sizes = [8,32]
 		optimizers = ['SGD','Adam']
 
@@ -523,8 +523,9 @@ class DQN:
 
 
 dqn = DQN()
-dqn.run('RNN')
-#dqn.test('DQN_CNN','1_32_0_Adam')
+#dqn.run('RNN')
+dqn.test('DQN_RNN','2_32_8_SGD')
+
 
 
 
