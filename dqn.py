@@ -227,9 +227,10 @@ class DQN:
 			print ('Timestep: '+str(ts)+'/'+str(self.episode_size))
 
 			# print parameters
-			for name, value in zip(self.print_name, self.print_value):
-				print (name+': '+str(value))
-			print ('')
+			if self.print_name and self.print_value:
+				for name, value in zip(self.print_name, self.print_value):
+					print (name+': '+str(value))
+				print ('')
 
 			# Print stats at end of episode
 			if done:
@@ -522,9 +523,53 @@ class DQN:
 		self.save_results(folder, fname)
 
 
+	def retrain_model(self, model, folder, fname):
+		self.agent = Agent(model, self.batch_size, self.max_ts)
+		self.env = Env(self.initial_bank)
+
+		# Training and validation phase
+		self.train()
+		self.validate()
+		self.learn(-2, self.val_end, self.test_end)
+
+		# Save results
+		with open('saved_data/'+folder+'/'+fname+'.pickle', 'wb') as handle:
+			pickle.dump(self.model_stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+	def retrain(self, data_name):
+		# After selecting parameters for each DQN variation, this method will retrain the same 
+		# parameters onto a different dataset. 
+		# param 	data_name 	Name of Dataset
+
+		df = pd.read_excel('data/'+data_name+'.xlsx', 
+			names=['date','open','high','low','close','volume'])
+		data = df['close'].to_numpy()
+		self.data = data.reshape(1, len(data))	
+
+		# Record statistics and model progress
+		self.start_time = time.time()
+		stat_columns = {'price','ts','episode','action','inv','reward','bank','portfolio','time'}
+		self.model_stats = pd.DataFrame(columns=stat_columns)
+
+
+		# DQN_ANN 
+		ANN = self.get_ANN(2,32,32,'Adam')
+		self.retrain_model(ANN, data_name, 'DQN_ANN 2_32_32_Adam')
+
+		# DQN_CNN 
+		CNN = self.get_CNN(2,32,32,'Adam')
+		self.retrain_model(CNN, data_name, 'DQN_CNN 2_32_32_Adam')
+
+		# DQN_RNN 
+		RNN = self.get_RNN(2,32,8,'SGD')
+		self.retrain_model(RNN, data_name, 'DQN_RNN 2_32_8_SGD')
+
+
 dqn = DQN()
 #dqn.run('RNN')
-dqn.test('DQN_RNN','2_32_8_SGD')
+#dqn.test('DQN_RNN','2_32_8_SGD')
+dqn.retrain('eur-usd')
 
 
 
