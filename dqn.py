@@ -193,8 +193,9 @@ class DQN:
 			print ('Timestep: '+str(ts)+'/'+str(self.val_end-self.val_start))
 
 			# print parameters
-			for name, value in zip(self.print_name, self.print_value):
-				print (name+': '+str(value))
+			if self.print_name and self.print_value:
+				for name, value in zip(self.print_name, self.print_value):
+					print (name+': '+str(value))
 			print ('')
 
 			if done:
@@ -230,7 +231,7 @@ class DQN:
 			if self.print_name and self.print_value:
 				for name, value in zip(self.print_name, self.print_value):
 					print (name+': '+str(value))
-				print ('')
+			print ('')
 
 			# Print stats at end of episode
 			if done:
@@ -524,6 +525,13 @@ class DQN:
 
 
 	def retrain_model(self, model, folder, fname):
+		# Train, validate and test a model to a given dataset. 
+
+		# Record statistics and model progress
+		self.start_time = time.time()
+		stat_columns = {'price','ts','episode','action','inv','reward','bank','portfolio','time'}
+		self.model_stats = pd.DataFrame(columns=stat_columns)
+
 		self.agent = Agent(model, self.batch_size, self.max_ts)
 		self.env = Env(self.initial_bank)
 
@@ -547,29 +555,30 @@ class DQN:
 		data = df['close'].to_numpy()
 		self.data = data.reshape(1, len(data))	
 
-		# Record statistics and model progress
-		self.start_time = time.time()
-		stat_columns = {'price','ts','episode','action','inv','reward','bank','portfolio','time'}
-		self.model_stats = pd.DataFrame(columns=stat_columns)
-
+		self.print_name  = ['model type']
 
 		# DQN_ANN 
+		self.print_value  = ['DQN_ANN']
 		ANN = self.get_ANN(2,32,32,'Adam')
 		self.retrain_model(ANN, data_name, 'DQN_ANN 2_32_32_Adam')
 
 		# DQN_CNN 
+		self.print_value  = ['DQN_CNN']
 		CNN = self.get_CNN(2,32,32,'Adam')
 		self.retrain_model(CNN, data_name, 'DQN_CNN 2_32_32_Adam')
+		self.print_value  = ['DQN_CNN']
 
 		# DQN_RNN 
+		self.print_value  = ['DQN_RNN']
 		RNN = self.get_RNN(2,32,8,'SGD')
 		self.retrain_model(RNN, data_name, 'DQN_RNN 2_32_8_SGD')
+
 
 
 dqn = DQN()
 #dqn.run('RNN')
 #dqn.test('DQN_RNN','2_32_8_SGD')
-dqn.retrain('eur-usd')
+dqn.retrain('eur-chf')
 
 
 
