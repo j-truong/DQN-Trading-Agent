@@ -1,3 +1,17 @@
+# DQN Trading Agent
+
+## Prerequisites
+
+```
+pip install requirements.txt
+```
+
+## Script
+Train model
+```
+python dqn.py
+```
+## Results
 Developed a Deep Q-Learning trading agent that traded currency exchanges (eur-gbp, eur-usd, eur-gbp) under a simulated environment. The design of the model was experimented with different reward and exploration systems to assess how the DQN performed under different circumstances. A [report] has been written that provides an introduction to the background knowledge required to understand this project along with the results of the system design and finalised model. 
 
 [report]: https://github.com/j-truong/disso/blob/master/report/Dissertation.pdf
